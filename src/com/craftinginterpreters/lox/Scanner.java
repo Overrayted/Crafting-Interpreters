@@ -87,6 +87,17 @@ public class Scanner {
                     // A comment goes until the end of the line.
                     // if its double slash this clears line (goes to end)
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    while (!isAtEnd()) {
+                        if (peek() == '\n') line++;
+
+                        if(peek() == '*' && peekNext() == '/') {
+                            advance();
+                            advance();
+                            break;
+                        }
+                        advance();
+                    }
                 } else {
                     addToken(SLASH);
                 }
