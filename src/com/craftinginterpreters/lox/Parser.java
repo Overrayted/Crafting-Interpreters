@@ -26,6 +26,18 @@ public class Parser {
         return separator();
     }
 
+    //challenge question adding comma operator
+    private Expr separator() {
+        Expr expr = equality();
+
+        while(match(COMMA)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr,operator,right);
+        }
+        return expr;
+    }
+
 
     private Expr equality() {
         Expr expr = comparison();
@@ -50,16 +62,6 @@ public class Parser {
         return expr;
     }
 
-    private Expr separator() {
-        Expr expr = equality();
-
-        while(match(COMMA)) {
-            Token operator = previous();
-            Expr right = equality();
-            expr = new Expr.Binary(expr,operator,right);
-        }
-        return expr;
-    }
 
     private Expr term() {
         Expr expr = factor();
