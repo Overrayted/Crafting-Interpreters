@@ -8,6 +8,11 @@ class Interpreter implements Expr.Visitor<Object> {
     }
 
     @Override
+    public Object visitGroupingExpr(Expr.Grouping expr) {
+        return evaluate(expr.expression);
+    }
+
+    @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right = evaluate(expr.right);
 
@@ -75,6 +80,15 @@ class Interpreter implements Expr.Visitor<Object> {
             case MINUS:
                 checkNumberOperands(expr.operator, left, right);
                 return (double)left - (double)right;
+            case SLASH:
+                checkNumberOperands(expr.operator, left, right);
+                if ((double)right == 0) {
+                    throw new RuntimeError(expr.operator,"Arithmetic error, cant divide by 0 ");
+                }
+                return (double)left / (double)right;
+            case STAR:
+                checkNumberOperands(expr.operator, left, right);
+                return (double)left * (double)right;
             case PLUS:
                 if (left instanceof Double && right instanceof Double) {
                     return (double)left + (double)right;
@@ -84,18 +98,46 @@ class Interpreter implements Expr.Visitor<Object> {
                     return (String)left + (String)right;
                 }
 
+                // implementing adding nums to strings which results in a string
+                // i.e 5 + "cat" would result in "5cat"
+                if (left instanceof Double && right instanceof String) {
+                    return left.toString() + (String)right;
+                }
+
+                if (left instanceof String && right instanceof Double) {
+                    return (String)left + right.toString();
+                }
+
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
-            case SLASH:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left / (double)right;
-            case STAR:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left * (double)right;
         }
 
         // Unreachable.
         return null;
     }
+
+    void interpret(Expr expression) {
+        try {
+            Object value = evaluate(expression);
+            System.out.println(stringify(value));
+        } catch (RuntimeError error) {
+            Lox.runtimeError(error);
+        }
+    }
+
+    private String stringify(Object object) {
+        if (object == null) {return "nil";}
+
+        if (object instanceof Double) {
+            String text = object.toString();
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() -2 );
+            }
+            return text;
+        }
+        return object.toString();
+    }
+
+
 
 
 }
